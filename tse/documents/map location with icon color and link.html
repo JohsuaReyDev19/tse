@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Google Maps JavaScript API Example</title>
+    <script
+      src="https://maps.googleapis.com/maps/api/js?callback=initMap"
+      async
+      defer
+    ></script>
+    <style>
+      #map {
+        height: 100%;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script>
+      function initMap() {
+        const asiaLocations = [
+          {
+            name: "Taj Mahal",
+            description:
+              "The Taj Mahal is an ivory-white marble mausoleum on the right bank of the Yamuna river in the Indian city of Agra.",
+            lat: 27.1750,
+            lng: 78.0422,
+            color: "green",
+            wikiLink: "https://en.wikipedia.org/wiki/Taj_Mahal"
+          },
+          {
+            name: "Petronas Towers",
+            description:
+              "The Petronas Towers, also known as the Petronas Twin Towers, are twin skyscrapers in Kuala Lumpur, Malaysia.",
+            lat: 3.1578,
+            lng: 101.7120,
+            color: "green",
+            wikiLink:
+              "https://en.wikipedia.org/wiki/Petronas_Towers"
+          }
+        ];
+
+        const europeLocations = [
+          {
+            name: "Eiffel Tower",
+            description:
+              "The Eiffel Tower is a wrought-iron lattice tower on the Champ de Mars in Paris, France.",
+            lat: 48.8584,
+            lng: 2.2945,
+            color: "red",
+            wikiLink:
+              "https://en.wikipedia.org/wiki/Eiffel_Tower"
+          },
+          {
+            name: "Colosseum",
+            description:
+              "The Colosseum is an oval amphitheatre in the centre of the city of Rome, Italy.",
+            lat: 41.8902,
+            lng: 12.4922,
+            color: "red",
+            wikiLink:
+              "https://en.wikipedia.org/wiki/Colosseum"
+          }
+        ];
+
+        const map = new google.maps.Map(document.getElementById("map"), {
+          zoom: 4,
+          center: { lat: asiaLocations[0].lat, lng: asiaLocations[0].lng }
+        });
+
+        for (let i = 0; i < asiaLocations.length; i++) {
+          new google.maps.Marker({
+            position: { lat: asiaLocations[i].lat, lng: asiaLocations[i].lng },
+            map,
+            icon: {
+              url:
+                `http://maps.google.com/mapfiles/ms/icons/${asiaLocations[i].color}.png`
+            },
+            title: asiaLocations[i].name,
+            contentString:
+              `<div><h3>${asiaLocations[i].name}</h3><p>${asiaLocations[i].description}</p><a href="${asiaLocations[i].wikiLink}">Wikipedia</a></div>`
+          }).addListener("click", function () {
+            const infowindow = new google.maps.InfoWindow({
+              content: this.contentString
+            });
+            infowindow.open(map, this);
+          });
+        }
+
+        for (let i = 0; i < europeLocations.length; i++) {
+          new google.maps.Marker({
+            position: { lat: europeLocations[i].lat, lng: europeLocations[i].lng },
+            map,
+            icon: {
+              url:
+                `http://maps.google.com/mapfiles/ms/icons/${europeLocations[i].color}.png`
+            },
+            title: europeLocations[i].name,
+            contentString:
+              `<div><h3>${europeLocations[i].name}</h3><p>${europeLocations[i].description}</p><a href="${europeLocations[i].wikiLink}">Wikipedia</a></div>`
+          }).addListener("click", function () {
+            const infowindow = new google.maps.InfoWindow({
+              content: this.contentString
+            });
+            infowindow.open(map, this);
+          });
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Get Longitude and Latitude on Click Event</title>
+  <script src="https://maps.googleapis.com/maps/api/js?sensor=false"></script>
+  <style>
+    #googleMap {
+      height: 1000px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <h3>Get Longitude and Latitude on Click Event</h3>
+  <div id="googleMap"></div>
+
+  <script>
+    function initMap() {
+      var map = new google.maps.Map(document.getElementById('googleMap'), {
+        zoom: 8,
+        center: {lat: -34.397, lng: 150.644}
+      });
+
+      google.maps.event.addListener(map, 'click', function(event) {
+        var latitude = event.latLng.lat();
+        var longitude = event.latLng.lng();
+        alert('Latitude: ' + latitude + ', Longitude: ' + longitude);
+      });
+    }
+    initMap();
+  </script>
+</body>
+</html>
