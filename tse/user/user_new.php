@@ -414,14 +414,20 @@ $rsevents=$db->rowset();
 
                                 <label><strong>Events</strong></label>
                                 <select id="events_id" name="events_id" class="form-select" placeholder=" ">
+                                    <!-- Default placeholder option -->
+                                    <option value="none">-- Select Event --</option>
+                                    
                                     <?php
                                     foreach ($rsevents as $row_rsevents) {
                                     ?>
-                                        <option value="<?php echo $row_rsevents['events_id'] ?>"
-                                            <?php if (isset($_POST['events_id']) && !(strcmp($row_rsevents['events_id'], $_POST['events_id']))) {
-                                                echo "selected=\"selected\"";
-                                            } ?>>
-                                            <?php echo htmlentities($row_rsevents['events_description']); ?></option>
+                                        <option value="<?php echo $row_rsevents['events_id']; ?>"
+                                            <?php 
+                                            if (isset($_POST['events_id']) && $row_rsevents['events_id'] == $_POST['events_id']) {
+                                                echo "selected";
+                                            } 
+                                            ?>>
+                                            <?php echo htmlentities($row_rsevents['events_description']); ?>
+                                        </option>
                                     <?php
                                     }
                                     ?>
@@ -498,7 +504,7 @@ $rsevents=$db->rowset();
 
 
 </body>
-<script>
+<!-- <script>
   $('#group').on('change', function() {
     const selectedGroup = $(this).val();
 
@@ -511,7 +517,7 @@ $rsevents=$db->rowset();
     }
 
   });
-</script>
+</script> -->
 
 </html>
 <?php ob_flush();

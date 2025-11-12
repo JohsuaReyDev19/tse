@@ -2,10 +2,10 @@
 <?php require_once('../connections/pdoconnect.php'); ?>
 
 <?php
-$phu=new php_util();
-$menu_id=$phu->get_menu_id(basename($_SERVER['PHP_SELF']));
+$phu = new php_util();
+$menu_id = $phu->get_menu_id(basename($_SERVER['PHP_SELF']));
 
-$db=new DatabaseConnect();
+$db = new DatabaseConnect();
 
 function generateCustomPassword() {
     $letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -30,37 +30,22 @@ function generateCustomPassword() {
     return $rawPassword;
 }
 
-
 if ((isset($_POST["POSTcheck"])) && ($_POST["POSTcheck"] == "form1")) {
   
+    // ✅ Insert only into judge table
     $SQLcrud = "INSERT INTO judge (`name`, events_id) VALUES (?, ?)";
     $db->query($SQLcrud);
-    $db->bind(1,$_POST['name']);
-    $db->bind(2,$_POST['events_id']);
-    $db->execute();
-    $id=$db->lastinsertid();
-
-    $SQLcrud = "INSERT INTO user (fullname, username, password, designation, `group`, `status`,`contact_no`, `address`, campus,judge_id) VALUES (?,?,?,?,?,?,?,?,?,?)";
-    $db->query($SQLcrud);
     $db->bind(1, $_POST['name']);
-    $db->bind(2, 'judge@'.$id);
-    $db->bind(3, htmlentities($phu->encryptMessage(generateCustomPassword())));
-    $db->bind(4, 'Judge');
-    $db->bind(5, 'Judge');
-    $db->bind(6, 'active');
-    $db->bind(7, '000-0000-000');
-    $db->bind(8, 'Candelaria');
-    $db->bind(9,'Candelaria' );
-    $db->bind(10,$id );
+    $db->bind(2, $_POST['events_id']);
     $db->execute();
 
-  
-
+    // Redirect to judge list page
     $GoTo = "judge_list.php?recordID=" . $_POST['events_id'];
     header(sprintf("Location: %s", $GoTo));
+    exit;
 }
-
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -92,10 +77,67 @@ if ((isset($_POST["POSTcheck"])) && ($_POST["POSTcheck"] == "form1")) {
         <fieldset>
 
         <div class="form-group">
-        <label for="">Name</label>
-          <input required type="text" class="form-control"  name="name" id="name" placeholder=" " value="<?php if (isset($_POST['name'])) echo $_POST['name'];?>" >
-        </div>
-   
+    <label for="judge">Select Judges</label>
+    <select required name="name" id="name" class="form-control">
+        <option value="">-- Select Judge --</option>
+        <?php
+        // Database connection
+        $conn = new mysqli("localhost", "root", "", "dbtse");
+
+        // Check connection
+        if ($conn->connect_error) {
+            die("Connection failed: " . $conn->connect_error);
+        }
+
+        $events_id = $_GET['recordID']; // current event
+
+        // Fetch all users
+        $sql = "SELECT fullname FROM user";
+        $result = $conn->query($sql);
+
+        // Fetch judges already assigned to this event
+        $existingJudges = [];
+        $sql_judges = "SELECT name FROM judge WHERE events_id = ?";
+        $stmt_j = $conn->prepare($sql_judges);
+        $stmt_j->bind_param("i", $events_id);
+        $stmt_j->execute();
+        $res_judges = $stmt_j->get_result();
+        while ($row_j = $res_judges->fetch_assoc()) {
+            $existingJudges[] = $row_j['name'];
+        }
+        $stmt_j->close();
+
+        // Store previously selected judge (if form was submitted)
+        $selectedJudge = isset($_POST['name']) ? $_POST['name'] : '';
+
+        // Loop through users
+        if ($result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                $fullname = $row['fullname'];
+
+                // Skip if fullname contains "Administrator"
+                if (stripos($fullname, 'Administrator') !== false) {
+                    continue;
+                }
+
+                // Disable if already assigned to this event
+                $disabled = in_array($fullname, $existingJudges) ? 'disabled' : '';
+                $selected = ($selectedJudge == $fullname) ? 'selected' : '';
+
+                echo '<option value="' . htmlspecialchars($fullname) . '" ' . $disabled . ' ' . $selected . '>' 
+                     . htmlspecialchars($fullname) 
+                     . ($disabled ? ' (Already assigned)' : '') 
+                     . '</option>';
+            }
+        } else {
+            echo '<option value="">No judges found</option>';
+        }
+
+        $conn->close();
+        ?>
+    </select>
+</div>
+
         <br>
         <div class="form-group">
         <div class="col-md-2"></div>

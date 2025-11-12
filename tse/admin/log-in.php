@@ -159,8 +159,6 @@ if (isset($_POST['username'])) {
         <img src="../images/front.png?start_time=<?php echo time(); ?>" class="img-responsive" width="100%" >
 
         </div>
-
-
         <div class="card col-md-4">
             <div class="card-body">
                 <div>
