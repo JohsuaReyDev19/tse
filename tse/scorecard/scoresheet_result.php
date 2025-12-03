@@ -83,79 +83,284 @@ require_once('../admin/grant_checker.php');
 
         <div class="card-body">
             <!--------------------------------------------------------------------------------->
+            <!--------------------------------------------------------------->
+<!-- CATEGORY RANKING TABLE (Option A)                         -->
+<!--------------------------------------------------------------->
+
+<h4 class="text-center mt-4 mb-3 text-primary fw-bold">
+    Category Winners (Ranking per Category)
+</h4>
+
+<?php
+// GET NUMBER OF JUDGES
+$query_jcount = "SELECT COUNT(DISTINCT judge_id) AS total_judges 
+                 FROM score WHERE events_id=?";
+$db->query($query_jcount);
+$db->bind(1, $_GET['events_id']);
+$jcount = $db->rowsingle()['total_judges'];
+
+if ($jcount == 0) { $jcount = 1; }
+
+// GET CATEGORIES
+$query_cat = "SELECT * FROM category WHERE events_id=?";
+$db->query($query_cat);
+$db->bind(1, $_GET['events_id']);
+$categories = $db->rowset();
+
+// LOOP THROUGH EACH CATEGORY
+foreach ($categories as $cat) {
+
+    echo "<h5 class='mt-4 mb-2 text-success fw-bold'>
+            ⭐ " . htmlentities($cat['description']) . "
+          </h5>";
+
+    echo "<table class='table table-bordered table-striped'>
+            <thead class='table-dark'>
+                <tr>
+                    <th width='10%'>Rank</th>
+                    <th width='40%'>Contestant</th>
+                    <th width='30%'>Description</th>
+                    <th width='20%' class='text-center'>Average Score</th>
+                </tr>
+            </thead>
+            <tbody>";
+    
+    // FETCH PARTICIPANTS WITH SCORES FOR THIS CATEGORY
+    $query_scores = "
+        SELECT 
+            p.participant_id,
+            p.name,
+            p.description,
+            (SUM(s.category_score)/$jcount) AS avg_score
+        FROM score s
+        JOIN participant p ON s.participant_id = p.participant_id
+        WHERE s.events_id = ?
+        AND s.category_id = ?
+        GROUP BY p.participant_id
+        ORDER BY avg_score DESC
+    ";
+    
+    $db->query($query_scores);
+    $db->bind(1, $_GET['events_id']);
+    $db->bind(2, $cat['category_id']);
+    $rows = $db->rowset();
+
+    $rank = 1;
+    foreach ($rows as $r) {
+        echo "<tr>
+                <td class='fw-bold'>$rank</td>
+                <td>" . htmlentities($r['name']) . "</td>
+                <td><span class='badge bg-secondary'>" . htmlentities($r['description']) . "</span></td>
+                <td class='text-center fw-bold'>" . number_format($r['avg_score'], 2) . "</td>
+              </tr>";
+        $rank++;
+    }
+
+    echo "</tbody></table>";
+}
+?>
+
+<br>
             <form method="post" name="form1" id="form1">
+                <h4 class="text-center mt-4 mb-3 text-primary fw-bold">
+    Overall Final Result
+</h4>
                 <table id="tablelist" class="table-striped table-hover table-responsive table-bordered" id="do_not_print">
-                    <thead>
-                        <tr class="alert-info">
-                            <!--<th class="fw-bold">#</th>-->
-                            <th class="fw-bold" data-sortable="false">Constestant</th>
-                            <?php
-                            foreach ($rs_category as $row_rs_category) {
+    <thead>
+        <tr class="alert-info">
+            <th class="fw-bold" data-sortable="false">Constestant</th>
+            <?php
+            foreach ($rs_category as $row_rs_category) {
+                echo '<th class="fw-bold text-center" data-sortable="false">' . $row_rs_category['description'] . '<br>';
+                echo $row_rs_category['percent'] . '%</th>';
+            }
+            ?>
+            <th class="fw-bold text-center">Total</th>
+        </tr>
+    </thead>
 
-                                echo '<th class="fw-bold text-center" data-sortable="false">' . $row_rs_category['description'] . '<br>';
-                                echo $row_rs_category['percent'] . '%</th>';
-                            }  ?>
-                            <th class="fw-bold  text-center">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php $ctr = 0;
-                        foreach ($rs_participant as $row_rs_participant) {
-                            $ctr++;
-                            $i = '<input type="hidden" id="participant_id_' . $ctr . '" name="participant_id_' . $ctr . '" value="' . $row_rs_participant['participant_id'] . '">';
-                            echo '<tr>';
-                            //echo '<td width="5%">' . $ctr . '.</td>';
-                            echo '<td>' . $i . $row_rs_participant['name'] .' <br><span class="badge bg-secondary">'.$row_rs_participant['description'] . '</span></td>';
+    <tbody>
+        <?php
+        $ctr = 0;
+        foreach ($rs_participant as $row_rs_participant) {
+            $ctr++;
+            $i = '<input type="hidden" id="participant_id_' . $ctr . '" name="participant_id_' . $ctr . '" value="' . $row_rs_participant['participant_id'] . '">';
 
-                            $total_value = "0";
-                            $query_rs = "SELECT SUM(category_score)/? 'category_score' FROM  score  WHERE events_id=? AND participant_id=?";
-                            $db->query($query_rs);
-                            $db->bind(1, $rs_judge_count);
-                            $db->bind(2, $_GET['events_id']);
-                            $db->bind(3, $row_rs_participant['participant_id']);
-                            $rs_total_value = $db->rowsingle();
-                            $rs_total_value_count = $db->rowsingle();
-                            if ($rs_total_value_count > 0) {
-                                $total_value = $rs_total_value['category_score'];
-                            }
+            echo '<tr>';
+            echo '<td>' . $i . $row_rs_participant['name'] . ' <br><span class="badge bg-secondary">' . $row_rs_participant['description'] . '</span></td>';
 
-                            $cat = 0;
-                            foreach ($rs_category as $row_rs_category) {
-                                $cat++;
-                                $value = "0";
-                                $query_rs = "SELECT SUM(category_score)/? 'category_score' FROM  score  WHERE events_id=? AND category_id=? AND participant_id=?";
-                                $db->query($query_rs);
-                                $db->bind(1, $rs_judge_count);
-                                $db->bind(2, $_GET['events_id']);
-                                $db->bind(3, $row_rs_category['category_id']);
-                                $db->bind(4, $row_rs_participant['participant_id']);
-                                $rs_value = $db->rowsingle();
-                                $rs_value_count = $db->rowsingle();
-                                if ($rs_value_count > 0) {
-                                    $value = $rs_value['category_score'];
-                                }
+            // ===========================
+            // FIX TOTAL SCORE
+            // ===========================
+            $query_rs = "SELECT SUM(category_score)/? AS category_score FROM score WHERE events_id=? AND participant_id=?";
+            $db->query($query_rs);
+            $db->bind(1, $rs_judge_count);
+            $db->bind(2, $_GET['events_id']);
+            $db->bind(3, $row_rs_participant['participant_id']);
+
+            $rs_total_value = $db->rowsingle();
+
+            // Convert NULL → 0
+            $total_raw = $rs_total_value['category_score'] ?? 0;
+            $total_value = number_format((float)$total_raw, 2);
+
+            // ===========================
+            // FIX CATEGORY SCORES
+            // ===========================
+            foreach ($rs_category as $row_rs_category) {
+
+                $query_rs = "SELECT SUM(category_score)/? AS category_score FROM score 
+                             WHERE events_id=? AND category_id=? AND participant_id=?";
+
+                $db->query($query_rs);
+                $db->bind(1, $rs_judge_count);
+                $db->bind(2, $_GET['events_id']);
+                $db->bind(3, $row_rs_category['category_id']);
+                $db->bind(4, $row_rs_participant['participant_id']);
+
+                $rs_value = $db->rowsingle();
+
+                // Convert NULL → 0
+                $value_raw = $rs_value['category_score'] ?? 0;
+                $value = number_format((float)$value_raw, 2);
+
+                echo '<td width="10%" class="text-center">' . $value . '</td>';
+            }
+
+            echo '<td width="10%" class="text-center">' . $total_value . '</td>';
+            echo '</tr>';
+        }
+        ?>
+        <br>
+    </tbody>
+</table>
+
+<br><hr>
+
+<h4 class="text-center mt-4 mb-3 text-primary fw-bold">Judge Score Breakdown</h4>
+
+<table class="table table-bordered table-striped table-hover">
+    <thead class="table-dark">
+        <tr>
+            <th width="20%">Judge</th>
+            <th width="30%">Contestant</th>
+            <th width="30%">Category</th>
+            <th width="10%" class="text-center">Score</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        <?php
+        // ------------------------------------------------------------
+        // FETCH JUDGE LIST  (judge.judge_id = user.judge_id)
+        // ------------------------------------------------------------
+        $query_judge = "SELECT j.judge_id, u.fullname 
+                        FROM judge j
+                        LEFT JOIN user u ON j.judge_id = u.judge_id";
+
+        $db->query($query_judge);
+        $judgeList = $db->rowset();
+
+        // ------------------------------------------------------------
+        // FETCH RAW SCORES
+        // ------------------------------------------------------------
+        $query_scores = "SELECT 
+                            s.judge_id,
+                            s.participant_id,
+                            s.category_id,
+                            s.category_score,
+                            p.name AS participant_name,
+                            p.description AS participant_desc,
+                            c.description AS category_name
+                        FROM score s
+                        JOIN participant p ON s.participant_id = p.participant_id
+                        JOIN category c ON s.category_id = c.category_id
+                        WHERE s.events_id = ?
+                        ORDER BY s.judge_id, s.participant_id, s.category_id";
+
+        $db->query($query_scores);
+        $db->bind(1, $_GET['events_id']);
+        $scoreRows = $db->rowset();
+
+        // ------------------------------------------------------------
+        // ORGANIZE: JUDGE → CONTESTANT → CATEGORY
+        // ------------------------------------------------------------
+        $organized = [];
+
+        foreach ($scoreRows as $row) {
+
+            // MATCH JUDGE NAME
+            $judgeName = '';
+            foreach ($judgeList as $j) {
+                if ($j['judge_id'] == $row['judge_id']) {
+                    $judgeName = $j['fullname'];
+                    break;
+                }
+            }
+
+            if ($judgeName == "") { $judgeName = "Unknown Judge"; }
+
+            // Contestant label w/ badge
+            $contestantKey = $row['participant_name'] . 
+                             " <span class='badge bg-secondary'>" . 
+                             $row['participant_desc'] . "</span>";
+
+            $organized[$judgeName][$contestantKey][] = [
+                'category' => $row['category_name'],
+                'score'    => $row['category_score']
+            ];
+        }
+
+        // ------------------------------------------------------------
+        // RENDER GROUPED TABLE
+        // ------------------------------------------------------------
+        foreach ($organized as $judge => $contestants) {
+
+            // JUDGE HEADER
+            echo "<tr class='table-primary'>
+                    <td colspan='1' class='fw-bold text-center fs-5'>
+                        Judge: " . htmlentities($judge) . "
+                    </td>
+                  </tr>";
+
+            foreach ($contestants as $contestant => $categories) {
+
+                // CONTESTANT HEADER
+                echo "<tr class='table-secondary'>
+                        <td></td>
+                        <td colspan='3' class='fw-bold fs-6'>$contestant</td>
+                      </tr>";
+
+                // CATEGORY ROWS
+                foreach ($categories as $c) {
+                    echo "<tr>";
+                    echo "<td></td>"; // indent
+                    echo "<td></td>"; // indent
+                    echo "<td>" . htmlentities($c['category']) . "</td>";
+                    echo "<td class='text-center fw-bold'>" . htmlentities($c['score']) . "</td>";
+                    echo "</tr>";
+                }
+            }
+        }
+        ?>
+    </tbody>
+</table>
 
 
 
-                                echo '<td  width="10%" class="text-center">' . $value . '</td>';
-                            }
-                            echo '<td width="10%"  class="text-center">' . $total_value . '</td>';
-                            echo '</tr>';
-                        }  ?>
-                        <br>
-
-                    </tbody>
-                </table>
-
-                <div class="form-group">
-                    <div class="col-md-2"></div>
-                    <div class="col-md-10" id="do_not_print">
+                <div class="form-group d-flex justify-content-between align-items-center mt-3">
+                    <div id="do_not_print" class="d-flex gap-2">
                         <div id="response"></div>
-                        <button type="submit" class="btn btn-outline-primary" form="form1"><span
-                                class="bi-x-octagon"> Close</button>
-                        <button id="print_button" class="btn btn-outline-secondary"> <span class="bi-printer-fill" data-toogle="tooltip" data-placement="bottom" title=""></span> Print Result</button>
-
+                        <button type="submit" class="btn btn-outline-primary" form="form1">
+                        <i class="bi-x-octagon"></i> Close
+                        </button>
+                        <button id="print_button" type="button" class="btn btn-outline-secondary">
+                        <i class="bi-printer-fill" data-toggle="tooltip" data-placement="bottom" title="Print Result"></i> Print Result
+                        </button>
                     </div>
+                    <!-- <div id="EndEvent" class="btn btn-outline-danger">
+                        <i class="bi-x-octagon"></i> End Event
+                    </div> -->
                 </div>
 
                 <input type="hidden" name="POSTcheck" value="form1">
@@ -166,6 +371,27 @@ require_once('../admin/grant_checker.php');
     <div id="do_not_print_footer">
     <?php require_once('../template/footer.php'); ?>
     </div>
+    <script>
+        $(document).ready(function(){
+            $("#EndEvent").click(function(){
+                if (confirm("Are you sure you want to end this event?")) {
+                    $.ajax({
+                        url: "./updated_event.php",
+                        type: "POST",
+                        data: { event_id: <?php echo $rs_event['events_id']; ?> },
+                        success: function(response){
+                            alert(response);
+                            location.reload();
+                        },
+                        error: function(){
+                            alert("Error updating event date.");
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+
     <script>
         const labelData = {
             placeholder: "",

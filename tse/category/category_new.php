@@ -14,10 +14,24 @@ if ((isset($_POST["POSTcheck"])) && ($_POST["POSTcheck"] == "form1")) {
     $description = trim($_POST['description']);
     $percent = (float)$_POST['percent'];
 
+    // Get remaining percent again (server-side)
+    $query_rs = "SELECT 100 - SUM(percent) AS total FROM `category` WHERE events_id=?";
+    $db->query($query_rs);
+    $db->bind(1, $events_id);
+    $rs_category = $db->rowsingle();
+    $total_percent = $rs_category['total'] ?? 100;
+
     // Check percent > 0
     if ($percent <= 0) {
         $message = "<div class='alert alert-warning'>Percent must be greater than 0. Record not saved.</div>";
-    } else {
+    }
+    // Check if input exceeds remaining percent
+    else if ($percent > $total_percent) {
+        $message = "<div class='alert alert-warning'>
+                        Percent exceeds the remaining allowed ($total_percent%). Record not saved.
+                    </div>";
+    }
+    else {
         // Check if description already exists for this event
         $checkSQL = "SELECT COUNT(*) as count FROM category WHERE events_id=? AND description=?";
         $db->query($checkSQL);
@@ -36,13 +50,14 @@ if ((isset($_POST["POSTcheck"])) && ($_POST["POSTcheck"] == "form1")) {
             $db->bind(3, $percent);
             $db->execute();
 
-            // Redirect after successful insert
+            // Redirect
             $GoTo = "category_list.php?recordID=" . $events_id;
-            header(sprintf("Location: %s", $GoTo));
+            header("Location: $GoTo");
             exit;
         }
     }
 }
+
 
 // Get total remaining percent
 $query_rs = "SELECT 100 - SUM(percent) AS total FROM `category` WHERE events_id=?";
@@ -55,6 +70,8 @@ $total_percent="0";
 if ($rs_category_total>0){
     $total_percent=$rs_category['total'];
 }
+
+
 ?>
 
 <!DOCTYPE html>

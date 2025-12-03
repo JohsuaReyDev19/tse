@@ -7,7 +7,7 @@ $menu_id=$phu->get_menu_id(basename($_SERVER['PHP_SELF']));
 
 $db=new DatabaseConnect();
 
-$query_rs = "select * FROM `judge` WHERE events_id=? order by `name`";
+$query_rs = "select * FROM `judge_events` WHERE events_id=? order by `name`";
 $db->query($query_rs);
 $db->bind(1,$_GET['recordID']);
 $rs=$db->rowset();

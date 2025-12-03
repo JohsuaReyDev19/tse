@@ -9,22 +9,22 @@ $db=new DatabaseConnect();
 
 if ((isset($_POST["POSTcheck"])) && ($_POST["POSTcheck"] == "form1")) {
 
-    $SQLcrud = "DELETE FROM judge WHERE `judge_id` = ?";
+    $SQLcrud = "DELETE FROM judge_events WHERE `judge_id` = ?";
     $db->query($SQLcrud);
     $db->bind(1,$_POST['id']);
     $db->execute();
 
-    $SQLcrud = "DELETE FROM user WHERE `judge_id` = ?";
-    $db->query($SQLcrud);
-    $db->bind(1,$_POST['id']);
-    $db->execute();
+    // $SQLcrud = "DELETE FROM user WHERE `judge_id` = ?";
+    // $db->query($SQLcrud);
+    // $db->bind(1,$_POST['id']);
+    // $db->execute();
   
     $GoTo = "judge_list.php?recordID=" . $_POST['events_id'];
     header(sprintf("Location: %s", $GoTo));
 }
 
 
-$query_rs = "SELECT * FROM `judge` WHERE `judge_id` = ?";
+$query_rs = "SELECT * FROM `judge_events` WHERE `judge_id` = ?";
 $db->query($query_rs);
 $db->bind(1, $_GET['recordID']);
 $row_rs = $db->rowsingle();

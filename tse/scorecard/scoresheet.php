@@ -40,8 +40,25 @@ $rs_participant = $db->rowset();
 if (!(strcmp($phu->found_group($_SESSION['AIT_MM_UserGroup'], $menu_id), 1))) {
     $MM_authorizedUsers = $_SESSION['AIT_MM_UserGroup'];
 }
+$query_rs = "select * FROM `participant` WHERE events_id=?";
+// CHECK IF JUDGE ALREADY SCORED THIS EVENT
+$query_check = "
+    SELECT COUNT(*) AS total_scored
+    FROM score
+    WHERE events_id = ?
+      AND judge_id = ?
+";
+$db->query($query_check);
+$db->bind(1, $_GET['events_id']);
+$db->bind(2, $_SESSION['judge_id']);
+$rs_check = $db->rowsingle();
 
+// count all categories x contestants
+$total_required = $rs_category_total * count($rs_participant);
+
+$judge_done = ($rs_check['total_scored'] >= $total_required);
 require_once('../admin/grant_checker.php');
+
 
 
 
@@ -57,13 +74,31 @@ require_once('../admin/grant_checker.php');
 
 <script>
   window.onpopstate = function () {
-    location.href = "../admin/log-in.php"; // or use window.location.replace()
+    location.href = "../index.php"; // or use window.location.replace()
   };
 
 </script>
 
 
 <body>
+
+<?php if ($judge_done): ?>
+<script>
+Swal.fire({
+    icon: 'info',
+    title: "You Already Finished Scoring",
+    text: "You have already submitted all scores for this event.",
+    confirmButtonText: "Return to Dashboard",
+    allowOutsideClick: false,
+    allowEscapeKey: false
+}).then(() => {
+    window.location.href = "../index.php";
+});
+</script>
+
+
+<?php endif; ?>
+
     <div align="center" class="alert" style="color: #012970;
     background-color: #f6f9ff;"><img src="../images/logo.png?start_time=<?php echo time(); ?>" class="img-responsive" width="150px">
         <h3><strong>Tabulation System for Events and Competetion for PRMSU Candelaria Campus</strong></h3><br>
@@ -136,11 +171,12 @@ require_once('../admin/grant_checker.php');
 
                                 echo '<td  width="10%"><input class="form-control" type="number" min="0" max="' . $row_rs_category['percent'] . '"  id="cat_'.$ctr.'_'. $cat . '" name="cat_'.$ctr.'_'. $cat . '" value="'.$value.'" 
                                 onkeyup="compute_total('.$ctr.','.$rs_category_total.','.$row_rs_participant['participant_id'] .','.$row_rs_category['category_id'].','.$_GET['events_id'].','.$rs_judge['judge_id'].','.$cat.');"
-                                onchange="compute_total('.$ctr.','.$rs_category_total.','.$row_rs_participant['participant_id'] .','.$row_rs_category['category_id'].','.$_GET['events_id'].','.$rs_judge['judge_id'].','.$cat.');"></td>';
+                                onchange="compute_total('.$ctr.','.$rs_category_total.','.$row_rs_participant['participant_id'] .','.$row_rs_category['category_id'].','.$_GET['events_id'].','.$rs_judge['judge_id'].','.$cat.');
+                                "<?php if($judge_done) echo "readonly disabled"; ?></td>';
                                 
 
                             }
-                            echo '<td width="10%"><input readonly class="form-control" type="number" min="0" max=""  id="total_'.$ctr.'_'. $rs_category_total . '" name="total_'.$ctr.'_'. $rs_category_total . '" value="'. $total_value.'"></td>';
+                            echo '<td width="10%"><input readonly class="form-control" type="number" min="0" max=""  id="total_'.$ctr.'_'. $rs_category_total . '" name="total_'.$ctr.'_'. $rs_category_total . '" value="'. $total_value.'"<?php if($judge_done) echo "disabled"; ?></td>';
                             echo '</tr>';
                            
                         }  ?>
@@ -153,8 +189,8 @@ require_once('../admin/grant_checker.php');
                     <div class="col-md-2"></div>
                     <div class="col-md-10">
                         <div id="response"></div>
-                        <button type="submit" class="btn btn-outline-primary" form="form1"><span
-                                        class="bi-x-octagon"> Close</button>
+                        <a href="../admin/index.php" type="submit" class="btn btn-outline-primary" ><span
+                                        class="bi-x-octagon"> Close</a>
 
                     </div>
                 </div>

@@ -110,8 +110,11 @@ $row_rs = $db->rowsingle();
 
               <div class="form-group col-md-4 col-sm-12">
                 <label for="events_date">Date</label>
-                <input required type="date" min="<?php echo date('Y-m-d'); ?>" required class="form-control" name="events_date" id="events_date" placeholder=" " value="<?php echo $row_rs['events_date']; ?>">
+                <input type="date" min="<?php echo date('Y-m-d'); ?>" class="form-control" name="events_date" id="events_date" value="<?php echo $row_rs['events_date']; ?>">
 
+                <input type="date" class="form-control" id="events_date2" value="<?php echo $row_rs['updated_date']; ?>" disabled style="display:none;">
+                
+                <p id="Ermsg" style="color: red; display: none;">Previous date event can't be changed</p>
               </div>
 
             </div>
@@ -135,6 +138,27 @@ $row_rs = $db->rowsingle();
       </form>
 
       <script>
+        // Get today's date
+        const currentDate = new Date();
+        const day = String(currentDate.getDate()).padStart(2, '0');
+        const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+        const year = currentDate.getFullYear();
+        const formattedDate = `${year}-${month}-${day}`;
+
+        // Get event date from PHP value
+        const date_events = document.getElementById('events_date').value;
+
+        if (date_events < formattedDate) {
+          // Event is in the past → disable edi table input
+          document.getElementById('events_date').style.display = 'none';
+          document.getElementById('events_date2').style.display = 'block';
+          document.getElementById('Ermsg').style.display = 'block';
+        } else {
+          // Event is today or future → allow editing
+          document.getElementById('events_date2').style.display = 'none';
+          document.getElementById('Ermsg').style.display = 'none';
+        }
+
         function preview1() {
           image_preview1.src = URL.createObjectURL(event.target.files[0]);
         }

@@ -49,34 +49,67 @@ $rs=$db->rowset();
 
 <?php foreach ($rs as $rs_data){ ?>
     <tr >
-    <td class="align-middle">
+   <td class="align-middle">
     <img src="../images/events/<?php echo $rs_data['events_id'];?>.jpg" alt="" width="100px" height="100px">    
-    &nbsp;&nbsp;<?php echo htmlentities($rs_data['events_description']); ?></td>
-    <td class="align-middle"><?php echo htmlentities($rs_data['events_date']); ?></td>
-    
-    <td  class="align-middle" width="130px">
-        <div class="btn-group" role="group" align="center">
-            
-        <?php if (!(strcmp($phu-> set_button_group($_SESSION['AIT_MM_UserGroup'],"category_list.php"),1))){ ?>
-            <a href="../category/category_list.php?recordID=<?php echo $rs_data['events_id'];?>" class="btn btn-outline-secondary" data-toogle="tooltip" data-placement="bottom" title="Category"><span class="bi bi-percent"></span></a>
-            <?php } ?>
+    &nbsp;&nbsp;<?php echo htmlentities($rs_data['events_description']); ?>
+</td>
+<td class="align-middle"><?php echo htmlentities($rs_data['events_date']); ?></td>
 
-            <?php if (!(strcmp($phu-> set_button_group($_SESSION['AIT_MM_UserGroup'],"judege_list.php"),1))){ ?>
-            <a href="../judge/judge_list.php?recordID=<?php echo $rs_data['events_id'];?>" class="btn btn-outline-secondary" data-toogle="tooltip" data-placement="bottom" title="Judge"><span class="bi bi-people-fill"></span></a>
-            <?php } ?>
+<td class="align-middle" width="130px">
+    <div class="btn-group" role="group" align="center">
+        <?php
+        // Check if the event is ended
+        $isEnded = ($rs_data['events_status'] === 'Ended');
 
-            <?php if (!(strcmp($phu-> set_button_group($_SESSION['AIT_MM_UserGroup'],"participant_list.php"),1))){ ?>
-            <a href="../participant/participant_list.php?recordID=<?php echo $rs_data['events_id'];?>" class="btn btn-outline-secondary" data-toogle="tooltip" data-placement="bottom" title="Participant"><span class="bx bx-user-voice"></span></a>
-            <?php } ?>
+        // Category button
+        if (!(strcmp($phu->set_button_group($_SESSION['AIT_MM_UserGroup'],"category_list.php"),1))) {
+            echo '<a href="../category/category_list.php?recordID='.$rs_data['events_id'].'" 
+                    class="btn btn-outline-secondary '.($isEnded ? 'disabled' : '').'" 
+                    data-toogle="tooltip" data-placement="bottom" title="Category">
+                    <span class="bi bi-percent"></span>
+                  </a>';
+        }
 
-             <?php if (!(strcmp($phu-> set_button_group($_SESSION['AIT_MM_UserGroup'],"events_update.php"),1))){ ?>
-            <a href="events_update.php?recordID=<?php echo $rs_data['events_id'];?>" class="btn btn-outline-success" data-toogle="tooltip" data-placement="bottom" title="Update"><span class="bi-pencil-square"></span></a>
-            <?php } ?>
-             <?php if (!(strcmp($phu-> set_button_group($_SESSION['AIT_MM_UserGroup'],"events_remove.php"),1))){ ?>
-            <a href='events_remove.php?recordID=<?php echo $rs_data["events_id"];?>' class="btn btn-outline-danger" data-toogle="tooltip" data-placement="bottom" title="Remove"><span class="bi-trash"></span></a>
-            <?php }?>
-        </div>
-    </td>
+        // Judge button
+        if (!(strcmp($phu->set_button_group($_SESSION['AIT_MM_UserGroup'],"judege_list.php"),1))) {
+            echo '<a href="../judge/judge_list.php?recordID='.$rs_data['events_id'].'" 
+                    class="btn btn-outline-secondary '.($isEnded ? 'disabled' : '').'" 
+                    data-toogle="tooltip" data-placement="bottom" title="Judge">
+                    <span class="bi bi-people-fill"></span>
+                  </a>';
+        }
+
+        // Participant button
+        if (!(strcmp($phu->set_button_group($_SESSION['AIT_MM_UserGroup'],"participant_list.php"),1))) {
+            echo '<a href="../participant/participant_list.php?recordID='.$rs_data['events_id'].'" 
+                    class="btn btn-outline-secondary '.($isEnded ? 'disabled' : '').'" 
+                    data-toogle="tooltip" data-placement="bottom" title="Participant">
+                    <span class="bx bx-user-voice"></span>
+                  </a>';
+        }
+
+        // Edit button
+        if (!(strcmp($phu->set_button_group($_SESSION['AIT_MM_UserGroup'],"events_update.php"),1))) {
+            echo '<a href="events_update.php?recordID='.$rs_data['events_id'].'" 
+                    class="btn btn-outline-success '.($isEnded ? 'disabled' : '').'" 
+                    data-toogle="tooltip" data-placement="bottom" title="Update">
+                    <span class="bi-pencil-square"></span>
+                  </a>';
+        }
+
+        // Remove button
+        if (!(strcmp($phu->set_button_group($_SESSION['AIT_MM_UserGroup'],"events_remove.php"),1))) {
+            echo '<a href="events_remove.php?recordID='.$rs_data['events_id'].'" 
+                    class="btn btn-outline-danger '.($isEnded ? '' : '').'" 
+                    data-toogle="tooltip" data-placement="bottom" title="Remove">
+                    <span class="bi-trash"></span>
+                  </a>';
+        }
+        ?>
+    </div>
+</td>
+
+
     </tr>
 <?php } ?>
 </tbody>

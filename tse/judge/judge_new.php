@@ -33,7 +33,7 @@ function generateCustomPassword() {
 if ((isset($_POST["POSTcheck"])) && ($_POST["POSTcheck"] == "form1")) {
   
     // ✅ Insert only into judge table
-    $SQLcrud = "INSERT INTO judge (`name`, events_id) VALUES (?, ?)";
+    $SQLcrud = "INSERT INTO judge_events (`name`, events_id) VALUES (?, ?)";
     $db->query($SQLcrud);
     $db->bind(1, $_POST['name']);
     $db->bind(2, $_POST['events_id']);
@@ -97,7 +97,7 @@ if ((isset($_POST["POSTcheck"])) && ($_POST["POSTcheck"] == "form1")) {
 
         // Fetch judges already assigned to this event
         $existingJudges = [];
-        $sql_judges = "SELECT name FROM judge WHERE events_id = ?";
+        $sql_judges = "SELECT name FROM judge_events WHERE events_id = ?";
         $stmt_j = $conn->prepare($sql_judges);
         $stmt_j->bind_param("i", $events_id);
         $stmt_j->execute();
