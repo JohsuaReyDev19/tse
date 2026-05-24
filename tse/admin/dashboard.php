@@ -193,27 +193,41 @@ if ($judgeCount > 0) {
 <!-- PREVIOUS EVENTS -->
 <!-- =============================== -->
 
-<?php if ($rs_previous_count > 0) { ?>
-<h5 class="card-title"><strong>PREVIOUS EVENTS</strong></h5>
+<?php if ($rs_previous_count > 0 && $_SESSION['AIT_MM_UserGroup'] != 'Judge') { ?>
 
-    <div class="row">
-        <?php foreach ($rs_previous as $rs_previous_data) { ?>
-            <div class="col-xxl-4 col-xl-12">
-                <a href="../scorecard/scoresheet_result.php?events_id=<?php echo htmlentities($rs_previous_data['events_id']); ?>">
-                    <div class="card">
-                        <div class="card info-card green-card">
-                            <div style="text-align:center">
-                                <h5 class="card-title"><?php echo htmlentities($rs_previous_data['events_description']); ?></h5>
-                            </div>
-                            <div class="card-body" style="text-align:center">
-                                <img class="rounded" 
-                                    src="../images/events/<?php echo $rs_previous_data['events_id']; ?>.jpg?t=<?php echo time(); ?>" 
-                                    width="300" height="300" />
-                            </div>
+<h5 class="card-title">
+    <strong>PREVIOUS EVENTS</strong>
+</h5>
+
+<div class="row">
+    <?php foreach ($rs_previous as $rs_previous_data) { ?>
+
+        <div class="col-xxl-4 col-xl-12">
+            <a href="../scorecard/scoresheet_result.php?events_id=<?php echo htmlentities($rs_previous_data['events_id']); ?>">
+
+                <div class="card">
+                    <div class="card info-card green-card">
+
+                        <div style="text-align:center">
+                            <h5 class="card-title">
+                                <?php echo htmlentities($rs_previous_data['events_description']); ?>
+                            </h5>
                         </div>
+
+                        <div class="card-body" style="text-align:center">
+                            <img class="rounded"
+                                src="../images/events/<?php echo $rs_previous_data['events_id']; ?>.jpg?t=<?php echo time(); ?>"
+                                width="300"
+                                height="300" />
+                        </div>
+
                     </div>
-                </a>
-            </div>
-        <?php } ?>
-    </div>
+                </div>
+
+            </a>
+        </div>
+
+    <?php } ?>
+</div>
+
 <?php } ?>
